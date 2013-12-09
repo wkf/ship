@@ -61,10 +61,42 @@ proxy
   haproxy
 
 
+Imagesfile
+
+config.vm.promision :docker do |docker|
+  docker.registry 'localhost:5000'
+  docker.build 'app', path: 'app/Dockerfile', commit: true
+  docker.build 'web', path: 'web/Dockerfile', commit: true
+  docker.run 'app'
+end
+
+
+Vagrant.configure("2") do |config|
+  config.vm.provision "docker" do |d|
+    d.run 'web', args: '-v /web/public:/public'
+  end
+end
+
+
+# repo -> prebuild -> build -> postbuild
+
+Images.configure('1') do |config|
+  registry 'localhost:5000'
+
+  image 'app', path: 'app/Dockerfile'
+  image 'web', path: 'web/Dockerfile'
+end
+
+'ORGANIZATION/APP:ROLE-VERSION'
+
+
+INDEX = ENV.fetch('DOCKER_INDEX_URL')
+
+
+"#{INDEX}/app:latest"
 
 
 
-
-
+use docker image as build cache
 
 
