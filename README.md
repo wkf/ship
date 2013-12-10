@@ -77,7 +77,6 @@ Vagrant.configure("2") do |config|
   end
 end
 
-
 # repo -> prebuild -> build -> postbuild
 
 Images.configure('1') do |config|
@@ -96,7 +95,41 @@ INDEX = ENV.fetch('DOCKER_INDEX_URL')
 "#{INDEX}/app:latest"
 
 
-
 use docker image as build cache
 
 
+REPO REF
+
+git clone REPO
+git reset --hard REF
+
+
+sudo docker build -t web ./web
+
+image 'web' do |i|
+  i.build './web/Dockerfile'
+  i.commit 'web'
+  i.push 'registry.this.thing'
+end
+
+docker build
+docker commit
+docker push
+
+
+
+'-v /deploy:/deploy'
+
+deploy.json
+
+web:
+  path: './web'
+  name: 'web'
+
+app:
+  path: './app'
+  name: 'app'
+
+
+
+requires a way to config env out of band (ex: keys)
