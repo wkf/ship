@@ -7,6 +7,8 @@ def build_image(name, path=nil)
   SHELL
 end
 
+# VERSION = ENV.fetch('SHIP_VERSION')
+
 Vagrant.configure("2") do |config|
   config.vm.box      = 'precise64'
   config.vm.network    'forwarded_port', guest: 80, host: 8080, auto_correct: true
@@ -26,9 +28,10 @@ Vagrant.configure("2") do |config|
   # end
 
   config.vm.provision :shell, inline: <<-SHELL
-    if !(grep -q "127\.0\.0\.1\s\s*registry\.ship")
+    if !(grep -qx "127\.0\.0\.1\s\s*registry\.ship" /etc/hosts)
     then
       echo '127.0.0.1 registry.ship' >> /etc/hosts
+      apt-get update
     fi
   SHELL
 
@@ -61,9 +64,9 @@ Vagrant.configure("2") do |config|
 
 # registry.ship/ORGANIZATION-NAME-ROLE:VERSION
 
-  config.vm.provision :docker do |d|
+  # config.vm.provision :docker do |d|
     # d.run 'api', image: 'registry.ship/api'
     # d.run 'dns', image: 'registry.ship/dns'
     # d.run 'proxy' image: 'registry.ship/proxy'
-  end
+  # end
 end
