@@ -1,0 +1,97 @@
+install_node
+install_nginx
+
+image :app do |i|
+
+  i.from :ubuntu
+  i.maintainer :will
+
+  i.add_recipe 'nginx'
+  i.add_recipe 'node'
+
+  i.add '/app', '/app'
+
+  i.run
+  i.run 'cd /app  && roots compile /'
+end
+
+image :app do |i|
+  i.from :ubuntu
+  i.maintainer :will
+
+  i.add '/app', '/app'
+
+  i.run 'cd /app; roots compile /'
+end
+
+node :app do |n|
+  n.stage :compile, image: '/app/compile/Dockerfile'
+  n.image
+end
+
+build 'roots compile'
+start 'nginx'
+
+FROM ubuntu
+MAINTAINER wkf
+
+RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
+RUN apt-get update
+RUN apt-get -y upgrade
+RUN apt-get -y install nginx
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+
+
+RUN echo <<-SHELL
+  #!/bin/sh
+
+  cd /app
+  git fetch
+  git reset --hard origin/master
+
+  roots compile
+
+  cp config/nginx.conf /etc/nginx/sites-available/default
+SHELL
+
+# SHELL > build
+
+# RUN echo <<-SHELL
+#   #!/bin/sh
+
+#   nginx
+# SHELL >> start
+
+# RUN chmod +x build start
+
+
+# VOLUME ["/public"]
+
+# EXPOSE 80
+
+# CMD ["nginx"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+image 'web' do |i|
+  i.build './web/Dockerfile'
+  i.commit 'web'
+  i.push 'registry.this.thing'
+end
+
+docker build
+docker commit
+docker push
