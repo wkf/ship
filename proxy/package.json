@@ -1,0 +1,9 @@
+{
+  "author": "Will Farrell",
+  "name": "configure",
+  "version": "0.0.1",
+  "description": "Configure Proxy",
+  "dependencies": {
+    "redis": "latest"
+  }
+}

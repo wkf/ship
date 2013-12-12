@@ -1,8 +1,8 @@
 def build_image(name, path=nil)
-  path = "./#{name}" unless path.present?
+  path = "/vagrant/#{name}/Dockerfile" unless path.present?
 
   <<-SHELL
-    sudo docker build -t registry.ship/#{name} #{path}/Dockerfile
+    sudo docker build -t registry.ship/#{name} #{path}
     sudo docker push registry.ship/#{name}
   SHELL
 end
@@ -25,20 +25,33 @@ Vagrant.configure("2") do |config|
   #   chef.add_recipe 'docker'
   # end
 
-  config.vm.define :registry do |registry|
-    registry.vm.provision :shell, inline: <<-SHELL
+  config.vm.provision :shell, inline: <<-SHELL
+    if !(grep -q "127\.0\.0\.1\s\s*registry\.ship")
+    then
       echo '127.0.0.1 registry.ship' >> /etc/hosts
-    SHELL
+    fi
+  SHELL
 
-    registry.vm.provision :docker do |d|
-      d.run 'stackbrew/registry',
-        args:
-          "-p 80:5000 \
-           -e SETTINGS_FLAVOR=prod \
-           -e S3_BUCKET=mojo-registry \
-           -e AWS_ACCESS_KEY_ID=#{ENV.fetch('AWS_ACCESS_KEY_ID')} \
-           -e AWS_SECRET_KEY=#{ENV.fetch('AWS_SECRET_KEY')}"
-    end
+  config.vm.provision :docker do |d|
+    d.pull_images 'stackbrew/registry'
+    d.run 'stackbrew/registry',
+      args:
+        "-p 80:5000 \
+         -e SETTINGS_FLAVOR=prod \
+         -e S3_BUCKET=mojo-registry \
+         -e AWS_ACCESS_KEY_ID=#{ENV.fetch('AWS_ACCESS_KEY_ID')} \
+         -e AWS_SECRET_KEY=#{ENV.fetch('AWS_SECRET_KEY')}"
+  end
+
+    # build ours here
+
+  # config.vm.provision :shell, inline: build_image('base')
+
+
+    # config.vm.provision :docker do |d|
+    #   d.run
+    # end
+
     # mojotech.ship.api
     # registry.vm.provision :shell, inline: build_image('api')
     # registry.vm.provision :shell, inline: build_image('dns')
@@ -48,11 +61,9 @@ Vagrant.configure("2") do |config|
 
 # registry.ship/ORGANIZATION-NAME-ROLE:VERSION
 
-    registry.vm.provision :docker do |d|
-      # d.run 'api', image: 'registry.ship/api'
-      # d.run 'dns', image: 'registry.ship/dns'
-      # d.run 'proxy' image: 'registry.ship/proxy'
-    end
+  config.vm.provision :docker do |d|
+    # d.run 'api', image: 'registry.ship/api'
+    # d.run 'dns', image: 'registry.ship/dns'
+    # d.run 'proxy' image: 'registry.ship/proxy'
   end
-
 end
